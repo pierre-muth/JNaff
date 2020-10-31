@@ -468,6 +468,7 @@ public class JNaff {
 		double dt = 1.0;
 		int points = 256;
 		double[] data = new double[points];        /* data to be analyzed */
+		double[] magnitude2 = new double[points];
 		/* these control termination of the iteration for frequencies: */
 		/* min acceptable contribution of frequency */
 		double fracRMSChangeLimit = 0.0; 
@@ -495,7 +496,7 @@ public class JNaff {
 				significance, 
 				t0, 
 				dt, 
-				data, 
+				data,
 				points, 
 				fracRMSChangeLimit, 
 				maxFrequencies, 
