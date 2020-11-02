@@ -3,6 +3,8 @@ package tests;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.time.Instant;
+import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -36,7 +38,7 @@ public class NaffChart extends JPanel {
 		});
 		
 		
-		int maxFrequencies = 32;
+		int maxFrequencies = 8;
 		double[] frequency = new double[maxFrequencies];
 		double[] amplitude = new double[maxFrequencies];
 		double[] phase = new double[maxFrequencies];
@@ -51,7 +53,7 @@ public class NaffChart extends JPanel {
 		/* maximum number of frequencies */
 		/* these control the accuracy of each frequency: */
 		/* maximum iteractions of parabolic optimizer */
-		double freqCycleLimit = 100; 
+		double freqCycleLimit = points/2; 
 		/* acceptable fractional accuracy of frequency */
 		double fracFreqAccuracyLimit = 0.00001;
 		/* search only for frequencies between these limits */
@@ -59,12 +61,13 @@ public class NaffChart extends JPanel {
 		double upperFreqLimit = points;
 		
 		double[] xValues = new double[points];
+		double[] xmag = new double[points/2];
 		
 		// create data
 		for (int i = 0; i < data.length; i++) {
 			data[i] = (Math.sin( ((Math.PI*2)/points) *100.555*i )  /4 )
-					+((Math.random()-.5) *1.0) ;
-			System.out.println(i+", "+data[i]);
+					+ ((Math.random()-.5) *1.1) ;
+//			System.out.println(i+", "+data[i]);
 		}
 		
 		// create x values
@@ -75,10 +78,13 @@ public class NaffChart extends JPanel {
 		// FFT of data
 		FastFourierTransformer fastFourierTransformer = new FastFourierTransformer(DftNormalization.STANDARD);
 		Complex[] complex = fastFourierTransformer.transform(data, TransformType.FORWARD);
-		double[] magnitude = new double[complex.length];
-		for (int i = 0; i < complex.length; i++) {
-			magnitude[i] = Math.sqrt( complex[i].getReal()*complex[i].getReal() + complex[i].getImaginary()*complex[i].getImaginary() );
+		double[] ymag = new double[points/2];
+		for (int i = 0; i < points/2; i++) {
+			ymag[i] = Math.sqrt( complex[i].getReal()*complex[i].getReal() + complex[i].getImaginary()*complex[i].getImaginary() );
+			xmag[i] = i;
 		}
+		
+		int nano =  Instant.now().getNano();
 		
 		// naff of data
 		JNaff.performNAFF(
@@ -97,6 +103,8 @@ public class NaffChart extends JPanel {
 				lowerFreqLimit, 
 				upperFreqLimit);
 		
+		System.out.println( "Spent "+(Instant.now().getNano() - nano)/1000000+" ms" );
+		
 		
 		for (int i = 0; i < maxFrequencies; i++) {
 			frequency[i]*=points;
@@ -105,7 +113,7 @@ public class NaffChart extends JPanel {
 		}
 		
 		rawDataSet.set(xValues, data);
-		magDataSet.set(xValues, magnitude);
+		magDataSet.set(xmag, ymag);
 		naffDataSet.set(frequency, amplitude);
 		
 		
